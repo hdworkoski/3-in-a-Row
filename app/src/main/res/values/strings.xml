@@ -22,4 +22,5 @@
     <string name="settings_col2">Second Color</string>
     <string name="settings_btn">Save Settings</string>
     <string name="title_activity_scores">ScoresActivity</string>
+    <string name="title_activity_help">HelpActivity</string>
 </resources>
