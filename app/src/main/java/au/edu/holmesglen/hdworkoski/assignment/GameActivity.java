@@ -1,29 +1,38 @@
 package au.edu.holmesglen.hdworkoski.assignment;
 
+/**
+ * File: GameActivity.java
+ * Author: Hillary Dworkoski
+ * Last Updated: 12/9/18
+ * Description: Activity for playing the game in the 3 in a row game app
+ */
+
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class GameActivity extends AppCompatActivity {
-    //create an array to hold 16 Item objects (the 4x4 grid)
-    Item[] gridArray = new Item[16];
-    boolean[] wasClicked = new boolean[16];
+    //initialize variables
+    Game newGame;
+    Item[] gridArray;
+    boolean[] wasClicked;
     GridView grid;
     ImageView iv;
     ImageAdapter iAdapter;
-    int turn = 0;
+    TextView nextColor;
+    int turn;
     Item color1;
     Item color2;
-    int c1;
-    int c2;
+    Button btnNewGame;
 
     //name of keys and file
     public static final String SETTINGS = "Settings";
@@ -42,94 +51,95 @@ public class GameActivity extends AppCompatActivity {
         //set up preferences
         sharedPref = getSharedPreferences(SETTINGS, Context.MODE_PRIVATE);
 
-        //assign values to variables
+        //assign object values to variables
         grid = (GridView) findViewById(R.id.gridView);
         iv = (ImageView) findViewById(R.id.img_next_color);
+        btnNewGame = (Button) findViewById(R.id.startNewGame);
+        nextColor = (TextView) findViewById(R.id.tv_next_color);
 
         //set game colors
         setColors();
-        //set next color
-        setNext(turn + 1);
         //set background color
         setBG();
+        //start a new game
+        startNewGame();
 
-        //set 4 random squares to be colored already
-        int g1 = (int) Math.floor(Math.random() * 16);
-        int g2;
-        int b1;
-        int b2;
+        //set on click listener for new game button
+        btnNewGame.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startNewGame();
+            }
+        });
 
-        do {
-            g2 = (int) Math.floor(Math.random() * 16);
-        }
-        while (g2 == g1);
-
-        do {
-            b1 = (int) Math.floor(Math.random() * 16);
-        }
-        while (b1 == g1 || b1 == g2);
-
-        do {
-            b2 = (int) Math.floor(Math.random() * 16);
-        }
-        while (b2 == b1 || b2 == g1 || b2 == g2);
-
-        //generate 4x4 array with all Items in the grid set to the grey image
-        for (int i = 0; i < 16; i++) {
-            gridArray[i] = new Item(R.drawable.grey, "grey");
-        }
-
-        //array of spaces to see if it was clicked it
-        for (int i=0; i<16; i++) {
-            wasClicked[i] = false;
-        }
-
-        //set the randomly selected squares to green and blue
-        gridArray[g1] = color1;
-        gridArray[g2] = color1;
-        gridArray[b1] = color2;
-        gridArray[b2] = color2;
-
-        //now pass the ImageAdapter a reference to the array created above
-        iAdapter = new ImageAdapter(this, gridArray);
-        grid.setAdapter(iAdapter);
-
+        //set on click listeners for  grid items
         grid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View v, int position, long l) {
-                if(!wasClicked[position]) {
-                    wasClicked[position] = true;
-                    //change the color
-                    if ((turn % 2) != 0) {
-                        ((ImageView) v).setImageResource(c2);
-                        gridArray[position] = color2;
-                    }
-                    else {
-                        ((ImageView) v).setImageResource(c1);
-                        gridArray[position] = color1;
-                    }
-                    setNext(turn);
-                    turn++;
-                    boolean gameOver = gameOver(position);
-                    if(gameOver) {
-                        //tell all spaces in array that they have been clicked so the game does not continue
-                        for (int i=0; i<16; i++) {
-                            wasClicked[i] = true;
-                        }
+            if(!wasClicked[position]) { //if the position has not been clicked already, do the code below
+                //change clicked boolean to 'true' for that position so it can't be selected again
+                wasClicked[position] = true;
 
-                        Toast toast = Toast.makeText(getApplicationContext(), "Game Over\nYou lost!", Toast.LENGTH_LONG);
-                        toast.show();
+                //change the color to either color 1 or color 2
+                if ((turn % 2) != 0) {
+                    ((ImageView) v).setImageResource(color2.getColor());
+                    gridArray[position] = color2;
+                }
+                else {
+                    ((ImageView) v).setImageResource(color1.getColor());
+                    gridArray[position] = color1;
+                }
+
+                //set the 'Next Color' image to the next color
+                setNext(turn);
+
+                //increase 'turn' variable
+                turn++;
+
+                //reset game variables
+                newGame.setGridArray(gridArray);
+                newGame.setWasClicked(wasClicked);
+                newGame.setTurn(turn);
+
+                //check if the game is over
+                boolean gameOver = newGame.gameOver(position);
+
+                //what to do if the game is over (3 in a row)
+                if(gameOver) {
+                    //tell all spaces in array that they have been clicked so the game does not continue
+                    for (int i=0; i<16; i++) {
+                        wasClicked[i] = true;
                     }
-                }
-                if(turn == 12)
-                {
-                    Toast toast = Toast.makeText(getApplicationContext(), "Game Over\nYou won!", Toast.LENGTH_LONG);
+
+                    //reset was clicked
+                    newGame.setWasClicked(wasClicked);
+
+                    //message to show that the user lost the game
+                    Toast toast = Toast.makeText(getApplicationContext(), "Game Over\nYou lost!", Toast.LENGTH_LONG);
                     toast.show();
+
+                    //show new game button
+                    btnNewGame.setVisibility(View.VISIBLE);
+
+                    //hide the next color information
+                    iv.setVisibility(View.GONE);
+                    nextColor.setVisibility(View.GONE);
                 }
+            }
+
+            //if the game has not been lost and the user has gone through 12 turns
+            if(turn == 12)
+            {
+                //display message telling user that they won
+                Toast toast = Toast.makeText(getApplicationContext(), "Game Over\nYou won!", Toast.LENGTH_LONG);
+                toast.show();
+            }
             }
         });
     }
 
+    /**
+     * method to change the background color and game colors when the activity is resumed from pause
+     */
     @Override
     protected void onResume() {
         super.onResume();
@@ -138,13 +148,20 @@ public class GameActivity extends AppCompatActivity {
         setColors();
     }
 
+    /**
+     * method to change the 'Next Color' image after each turn
+     * @param turn
+     */
     public void setNext(int turn) {
         if (turn % 2 != 0)
-            iv.setImageResource(c1);
+            iv.setImageResource(color1.getColor());
         else
-            iv.setImageResource(c2);
+            iv.setImageResource(color2.getColor());
     }
 
+    /**
+     * method to set the background color from shared preferences
+     */
     public void setBG() {
         if(sharedPref.contains(BG)) {
             String bg = sharedPref.getString(BG, "");
@@ -160,117 +177,58 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * method to set the game colors from shared preferences
+     */
     public void setColors() {
         if(sharedPref.contains(COL1) && sharedPref.contains(COL2)) {
             String col1 = sharedPref.getString(COL1, "");
             String col2 = sharedPref.getString(COL2, "");
 
-            if(col1.equals("Green")) {
+            if(col1.equals("Green"))
                 color1 = new Item(R.drawable.green, "green");
-                c1 = R.drawable.green;
-            }
-            else if(col1.equals("Blue")) {
+            else if(col1.equals("Blue"))
                 color1 = new Item(R.drawable.blue, "blue");
-                c1 = R.drawable.blue;
-            }
-            else if(col1.equals("Purple")) {
+            else if(col1.equals("Purple"))
                 color1 = new Item(R.drawable.purple, "purple");
-                c1 = R.drawable.purple;
-            }
 
-            if(col2.equals("Red")) {
+            if(col2.equals("Red"))
                 color2 = new Item(R.drawable.red, "red");
-                c2 = R.drawable.red;
-            }
-            else if(col2.equals("Orange")) {
+            else if(col2.equals("Orange"))
                 color2 = new Item(R.drawable.orange, "orange");
-                c2 = R.drawable.orange;
-            }
-            else if(col2.equals("Yellow")) {
+            else if(col2.equals("Yellow"))
                 color2 = new Item(R.drawable.yellow, "yellow");
-                c2 = R.drawable.yellow;
-            }
         }
         else {
             color1 = new Item(R.drawable.green, "green");
-            c1 = R.drawable.green;
             color2 = new Item(R.drawable.red, "red");
-            c2 = R.drawable.red;
         }
     }
 
-    public boolean gameOver(int position) {
-        System.out.println("color 1: " + color1);
-        System.out.println("color 2: " + color2);
-        System.out.println("selected color: " + gridArray[position]);
-        System.out.println("position: " + position);
-        boolean over = false;
-        if(gridArray[position] == color1) {
-            if ((position == 0) || (position == 1) || (position == 4) || (position == 5) || (position == 8) || (position == 9) || (position == 12) || (position == 13)) {
-                System.out.println("here1");
-                System.out.println("position + 1" + gridArray[position + 1]);
-                System.out.println("position + 2" + gridArray[position + 2]);
-                if(gridArray[position + 1].equals(color1) && gridArray[position + 2].equals(color1))
-                    over = true;
-            }
-            if ((position == 0) || (position == 1) || (position == 2) || (position == 3) || (position == 4) || (position == 5) || (position == 6) || (position == 7)) {
-                System.out.println("here2");
-                if(gridArray[position + 4].equals(color1) && gridArray[position + 8].equals(color1))
-                    over = true;
-            }
-            if ((position == 1) || (position == 2) || (position == 5) || (position == 6) || (position == 9) || (position == 10) || (position == 13) || (position == 14)) {
-                System.out.println("here3");
-                if(gridArray[position + 1].equals(color1) && gridArray[position - 1].equals(color1))
-                    over = true;
-            }
-            if ((position == 2) || (position == 3) || (position == 6) || (position == 7) || (position == 10) || (position == 11) || (position == 14) || (position == 15)) {
-                System.out.println("here4");
-                if(gridArray[position - 1].equals(color1) && gridArray[position - 2].equals(color1))
-                    over = true;
-            }
-            if ((position == 4) || (position == 5) || (position == 6) || (position == 7) || (position == 8) || (position == 9) || (position == 10) || (position == 11)) {
-                System.out.println("here5");
-                if(gridArray[position + 4].equals(color1) && gridArray[position - 4].equals(color1))
-                    over = true;
-            }
-            if ((position == 8) || (position == 9) || (position == 10) || (position == 11) || (position == 12) || (position == 13) || (position == 14) || (position == 15)) {
-                System.out.println("here6");
-                if(gridArray[position - 4].equals(color1) && gridArray[position - 8].equals(color1))
-                    over = true;
-            }
-        }
-        else if(gridArray[position] == color2) {
-            if ((position == 0) || (position == 1) || (position == 4) || (position == 5) || (position == 8) || (position == 9) || (position == 12) || (position == 13)) {
-                System.out.println("here1.1");
-                if(gridArray[position + 1].equals(color2) && gridArray[position + 2].equals(color2))
-                    over = true;
-            }
-            if ((position == 0) || (position == 1) || (position == 2) || (position == 3) || (position == 4) || (position == 5) || (position == 6) || (position == 7)) {
-                System.out.println("here1.2");
-                if(gridArray[position + 4].equals(color2) && gridArray[position + 8].equals(color2))
-                    over = true;
-            }
-            if ((position == 1) || (position == 2) || (position == 5) || (position == 6) || (position == 9) || (position == 10) || (position == 13) || (position == 14)) {
-                System.out.println("here1.3");
-                if(gridArray[position + 1].equals(color2) && gridArray[position - 1].equals(color2))
-                    over = true;
-            }
-            if ((position == 2) || (position == 3) || (position == 6) || (position == 7) || (position == 10) || (position == 11) || (position == 14) || (position == 15)) {
-                System.out.println("here1.4");
-                if(gridArray[position - 1].equals(color2) && gridArray[position - 2].equals(color2))
-                    over = true;
-            }
-            if ((position == 4) || (position == 5) || (position == 6) || (position == 7) || (position == 8) || (position == 9) || (position == 10) || (position == 11)) {
-                System.out.println("here1.5");
-                if(gridArray[position + 4].equals(color2) && gridArray[position - 4].equals(color2))
-                    over = true;
-            }
-            if ((position == 8) || (position == 9) || (position == 10) || (position == 11) || (position == 12) || (position == 13) || (position == 14) || (position == 15)) {
-                System.out.println("here1.6");
-                if(gridArray[position - 4].equals(color2) && gridArray[position - 8].equals(color2))
-                    over = true;
-            }
-        }
-        return over;
+    /**
+     * method to start a new game
+     */
+    public void startNewGame() {
+        //hide new game button
+        btnNewGame.setVisibility(View.GONE);
+
+        //set next color
+        setNext(1);
+
+        //show the next color information
+        iv.setVisibility(View.VISIBLE);
+        nextColor.setVisibility(View.VISIBLE);
+
+        //create a new game
+        newGame = new Game(color1, color2);
+
+        //get variables from new game object
+        gridArray = newGame.getGridArray();
+        wasClicked = newGame.getWasClicked();
+        turn = newGame.getTurn();
+
+        //passing the ImageAdapter a reference to the gridArray created in the new game
+        iAdapter = new ImageAdapter(this, gridArray);
+        grid.setAdapter(iAdapter);
     }
 }

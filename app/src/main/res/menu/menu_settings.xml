@@ -3,15 +3,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="au.edu.holmesglen.hdworkoski.assignment.MainActivity">
     <item
-        android:id="@+id/menu_main_hs"
+        android:id="@+id/menu_settings_main"
         android:orderInCategory="10"
+        android:title="@string/menu_activity_main" />
+    <item
+        android:id="@+id/menu_settings_hs"
+        android:orderInCategory="20"
         android:title="@string/menu_activity_hs" />
     <item
-        android:id="@+id/menu_main_help"
-        android:orderInCategory="20"
-        android:title="@string/menu_activity_help" />
-    <item
-        android:id="@+id/menu_main_settings"
+        android:id="@+id/menu_settings_help"
         android:orderInCategory="30"
-        android:title="@string/menu_activity_settings" />
+        android:title="@string/menu_activity_help" />
 </menu>

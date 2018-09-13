@@ -1,5 +1,12 @@
 package au.edu.holmesglen.hdworkoski.assignment;
 
+/**
+ * File: ImageAdapter.java
+ * Author: Hillary Dworkoski
+ * Last Updated: 12/9/18
+ * Description: Image Adapter class to take in the gridArray of items and display them in the activity
+ */
+
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,27 +15,32 @@ import android.widget.GridView;
 import android.widget.ImageView;
 
 public class ImageAdapter extends BaseAdapter {
-    Item[] gridArray; //an array of the Item class - our Item class represents color image
+    //create variables
+    Item[] gridArray; //an array of the Item class representing color image
     private Context mContext; //the current state of an app or object or activity
 
-    public ImageAdapter(Context c, Item[] gridArray) { //constructor
+    //constructor
+    public ImageAdapter(Context c, Item[] gridArray) {
         mContext = c;
         this.gridArray = gridArray;
     }
 
+    //get count method
     public int getCount() { //return the size of the array
         return gridArray.length;
     }
 
+    //get item method
     public Object getItem(int position) { //return the current Item (color) in a grid on GridView
         return null;
     }
 
+    //get item id method
     public long getItemId(int position) { //return the position in GridView of where the color can be found
         return position;
     }
 
-    // create a new ImageView for each item referenced by the Adapter
+    //create a new ImageView for each item referenced by the Adapter
     public View getView(int position, View convertView, ViewGroup parent) {
         ImageView imageView;
         if (convertView == null) {
