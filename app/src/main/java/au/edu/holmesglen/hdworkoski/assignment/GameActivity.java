@@ -76,49 +76,27 @@ public class GameActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View v, int position, long l) {
             if(!wasClicked[position]) { //if the position has not been clicked already, do the code below
-                //change clicked boolean to 'true' for that position so it can't be selected again
-                wasClicked[position] = true;
 
-                //change the color to either color 1 or color 2
-                if ((turn % 2) != 0) {
-                    ((ImageView) v).setImageResource(color2.getColor());
-                    gridArray[position] = color2;
-                }
-                else {
-                    ((ImageView) v).setImageResource(color1.getColor());
-                    gridArray[position] = color1;
-                }
+                //call the setGameTurn method
+                newGame.setGameTurn(position, v);
 
-                //set the 'Next Color' image to the next color
-                setNext(turn);
-
-                //increase 'turn' variable
-                turn++;
-
-                //reset game variables
-                newGame.setGridArray(gridArray);
-                newGame.setWasClicked(wasClicked);
-                newGame.setTurn(turn);
+                //get updated values
+                gridArray = newGame.getGridArray();
+                wasClicked = newGame.getWasClicked();
+                turn = newGame.getTurn();
 
                 //check if the game is over
                 boolean gameOver = newGame.gameOver(position);
 
                 //what to do if the game is over (3 in a row)
                 if(gameOver) {
-                    //tell all spaces in array that they have been clicked so the game does not continue
-                    for (int i=0; i<16; i++) {
-                        wasClicked[i] = true;
-                    }
 
-                    //reset was clicked
-                    newGame.setWasClicked(wasClicked);
+                    //call the end game method to end the game
+                    newGame.endGame();
 
                     //message to show that the user lost the game
                     Toast toast = Toast.makeText(getApplicationContext(), "Game Over\nYou lost!", Toast.LENGTH_LONG);
                     toast.show();
-
-                    //show new game button
-                    btnNewGame.setVisibility(View.VISIBLE);
 
                     //hide the next color information
                     iv.setVisibility(View.GONE);
@@ -129,9 +107,16 @@ public class GameActivity extends AppCompatActivity {
             //if the game has not been lost and the user has gone through 12 turns
             if(turn == 12)
             {
+                //call the end game method to end the game
+                newGame.endGame();
+
                 //display message telling user that they won
                 Toast toast = Toast.makeText(getApplicationContext(), "Game Over\nYou won!", Toast.LENGTH_LONG);
                 toast.show();
+
+                //hide the next color information
+                iv.setVisibility(View.GONE);
+                nextColor.setVisibility(View.GONE);
             }
             }
         });
@@ -146,17 +131,6 @@ public class GameActivity extends AppCompatActivity {
         sharedPref = getSharedPreferences(SETTINGS, Context.MODE_PRIVATE);
         setBG();
         setColors();
-    }
-
-    /**
-     * method to change the 'Next Color' image after each turn
-     * @param turn
-     */
-    public void setNext(int turn) {
-        if (turn % 2 != 0)
-            iv.setImageResource(color1.getColor());
-        else
-            iv.setImageResource(color2.getColor());
     }
 
     /**
@@ -209,18 +183,16 @@ public class GameActivity extends AppCompatActivity {
      * method to start a new game
      */
     public void startNewGame() {
-        //hide new game button
-        btnNewGame.setVisibility(View.GONE);
-
-        //set next color
-        setNext(1);
 
         //show the next color information
         iv.setVisibility(View.VISIBLE);
         nextColor.setVisibility(View.VISIBLE);
 
         //create a new game
-        newGame = new Game(color1, color2);
+        newGame = new Game(color1, color2, btnNewGame, iv);
+
+        //set next color
+        newGame.setNext(1, iv);
 
         //get variables from new game object
         gridArray = newGame.getGridArray();

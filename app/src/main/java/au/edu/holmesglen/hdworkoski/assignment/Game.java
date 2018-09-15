@@ -1,10 +1,14 @@
 package au.edu.holmesglen.hdworkoski.assignment;
 
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+
 /**
  * File: Game.java
  * Author: Hillary Dworkoski
  * Last Updated: 12/9/18
- * Description: Game class to define game values and create a new game
+ * Description: Game class to define game values, create a new game, and control game logic in view
  */
 
 public class Game{
@@ -17,13 +21,21 @@ public class Game{
     private int g2;
     private int b1;
     private int b2;
+    private Button btnNewGame;
+    private View iv;
 
     //constructor
-    public Game(Item color1, Item color2) {
+    public Game(Item color1, Item color2, View btnNewGame, View iv) {
         this.color1 = color1;
         this.color2 = color2;
 
         turn = 0;
+
+        this.iv = iv;
+
+        //hide New Game button
+        this.btnNewGame = (Button) btnNewGame;
+        btnNewGame.setVisibility(View.GONE);
 
         //create an array to hold 16 Item objects (the 4x4 grid) with all grey images to start
         gridArray = new Item[16];
@@ -69,6 +81,7 @@ public class Game{
         wasClicked[b2] = true;
     }
 
+    //getters and setters
     public int getG1() {
         return g1;
     }
@@ -110,15 +123,48 @@ public class Game{
     }
 
     /**
+     * method to change the 'Next Color' image after each turn
+     * @param turn game turn number
+     */
+    public void setNext(int turn, View iv) {
+        if (turn % 2 != 0)
+            ((ImageView) iv).setImageResource(color1.getColor());
+        else
+            ((ImageView) iv).setImageResource(color2.getColor());
+    }
+
+    /**
+     * method to make a turn in the game
+     * @param position position of selected square
+     * @param v view of selected square
+     */
+    public void setGameTurn(int position, View v) {
+        //change clicked boolean to 'true' for that position so it can't be selected again
+        wasClicked[position] = true;
+
+        //change the color to either color 1 or color 2
+        if ((turn % 2) != 0) {
+            ((ImageView) v).setImageResource(color2.getColor());
+            gridArray[position] = color2;
+        }
+        else {
+            ((ImageView) v).setImageResource(color1.getColor());
+            gridArray[position] = color1;
+        }
+
+        //set the 'Next Color' image to the next color
+        setNext(turn, iv);
+
+        //increase turn variable
+        turn++;
+    }
+
+    /**
      * method to determine if the user has lost the game because there is a 3 in a row
      * @param position position selected by the user
      * @return boolean if the game has been lost
      */
     public boolean gameOver(int position) {
-        System.out.println("color 1: " + color1);
-        System.out.println("color 2: " + color2);
-        System.out.println("selected color: " + gridArray[position]);
-        System.out.println("position: " + position);
 
         //variable to save if the user has lost or not
         boolean over = false;
@@ -126,34 +172,26 @@ public class Game{
         //if the selected position is color1
         if(gridArray[position].getTitle().equals(color1.getTitle())) {
             if ((position == 0) || (position == 1) || (position == 4) || (position == 5) || (position == 8) || (position == 9) || (position == 12) || (position == 13)) {
-                System.out.println("here1");
-                System.out.println("position + 1" + gridArray[position + 1].getTitle());
-                System.out.println("position + 2" + gridArray[position + 2].getTitle());
                 if(gridArray[position + 1].getTitle().equals(color1.getTitle()) && gridArray[position + 2].getTitle().equals(color1.getTitle()))
                     over = true;
             }
             if ((position == 0) || (position == 1) || (position == 2) || (position == 3) || (position == 4) || (position == 5) || (position == 6) || (position == 7)) {
-                System.out.println("here2");
                 if(gridArray[position + 4].getTitle().equals(color1.getTitle()) && gridArray[position + 8].getTitle().equals(color1.getTitle()))
                     over = true;
             }
             if ((position == 1) || (position == 2) || (position == 5) || (position == 6) || (position == 9) || (position == 10) || (position == 13) || (position == 14)) {
-                System.out.println("here3");
                 if(gridArray[position + 1].getTitle().equals(color1.getTitle()) && gridArray[position - 1].getTitle().equals(color1.getTitle()))
                     over = true;
             }
             if ((position == 2) || (position == 3) || (position == 6) || (position == 7) || (position == 10) || (position == 11) || (position == 14) || (position == 15)) {
-                System.out.println("here4");
                 if(gridArray[position - 1].getTitle().equals(color1.getTitle()) && gridArray[position - 2].getTitle().equals(color1.getTitle()))
                     over = true;
             }
             if ((position == 4) || (position == 5) || (position == 6) || (position == 7) || (position == 8) || (position == 9) || (position == 10) || (position == 11)) {
-                System.out.println("here5");
                 if(gridArray[position + 4].getTitle().equals(color1.getTitle()) && gridArray[position - 4].getTitle().equals(color1.getTitle()))
                     over = true;
             }
             if ((position == 8) || (position == 9) || (position == 10) || (position == 11) || (position == 12) || (position == 13) || (position == 14) || (position == 15)) {
-                System.out.println("here6");
                 if(gridArray[position - 4].getTitle().equals(color1.getTitle()) && gridArray[position - 8].getTitle().equals(color1.getTitle()))
                     over = true;
             }
@@ -161,36 +199,43 @@ public class Game{
         //if the selected position is color 2
         else if(gridArray[position].getTitle().equals(color2.getTitle())) {
             if ((position == 0) || (position == 1) || (position == 4) || (position == 5) || (position == 8) || (position == 9) || (position == 12) || (position == 13)) {
-                System.out.println("here1.1");
                 if(gridArray[position + 1].getTitle().equals(color2.getTitle()) && gridArray[position + 2].getTitle().equals(color2.getTitle()))
                     over = true;
             }
             if ((position == 0) || (position == 1) || (position == 2) || (position == 3) || (position == 4) || (position == 5) || (position == 6) || (position == 7)) {
-                System.out.println("here1.2");
                 if(gridArray[position + 4].getTitle().equals(color2.getTitle()) && gridArray[position + 8].getTitle().equals(color2.getTitle()))
                     over = true;
             }
             if ((position == 1) || (position == 2) || (position == 5) || (position == 6) || (position == 9) || (position == 10) || (position == 13) || (position == 14)) {
-                System.out.println("here1.3");
                 if(gridArray[position + 1].getTitle().equals(color2.getTitle()) && gridArray[position - 1].getTitle().equals(color2.getTitle()))
                     over = true;
             }
             if ((position == 2) || (position == 3) || (position == 6) || (position == 7) || (position == 10) || (position == 11) || (position == 14) || (position == 15)) {
-                System.out.println("here1.4");
                 if(gridArray[position - 1].getTitle().equals(color2.getTitle()) && gridArray[position - 2].getTitle().equals(color2.getTitle()))
                     over = true;
             }
             if ((position == 4) || (position == 5) || (position == 6) || (position == 7) || (position == 8) || (position == 9) || (position == 10) || (position == 11)) {
-                System.out.println("here1.5");
                 if(gridArray[position + 4].getTitle().equals(color2.getTitle()) && gridArray[position - 4].getTitle().equals(color2.getTitle()))
                     over = true;
             }
             if ((position == 8) || (position == 9) || (position == 10) || (position == 11) || (position == 12) || (position == 13) || (position == 14) || (position == 15)) {
-                System.out.println("here1.6");
                 if(gridArray[position - 4].getTitle().equals(color2.getTitle()) && gridArray[position - 8].getTitle().equals(color2.getTitle()))
                     over = true;
             }
         }
         return over;
+    }
+
+    /**
+     * method to end the game, only called when 3 in a row is found
+     */
+    public void endGame() {
+        //tell all spaces in array that they have been clicked so the game does not continue
+        for (int i=0; i<16; i++) {
+            wasClicked[i] = true;
+        }
+
+        //show new game button
+        btnNewGame.setVisibility(View.VISIBLE);
     }
 }
